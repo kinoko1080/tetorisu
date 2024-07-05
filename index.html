@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>テトリス</title>
+    <style>
+        /* 全体のスタイル設定 */
+        body {
+            display: flex;  /* フレックスボックスを使用して要素を配置 */
+            justify-content: center;  /* 横方向の中央寄せ */
+            align-items: flex-start;  /* 縦方向の上揃え */
+            height: 100vh;  /* ビューポートの高さに合わせる */
+            margin: 0;  /* 余白をなしに */
+            padding: 20px;  /* 内側の余白 */
+            box-sizing: border-box;  /* ボックスサイズを境界を含む */
+        }
+
+        /* ゲームコンテナのスタイル設定 */
+        #game-container {
+            display: flex;  /* フレックスボックスを使用 */
+            flex-direction: column;  /* 縦方向に配置 */
+            align-items: center;  /* 横方向の中央寄せ */
+        }
+
+        /* キャンバスコンテナのスタイル設定 */
+        #canvas-container {
+            display: flex;  /* フレックスボックスを使用 */
+            flex-direction: column;  /* 縦方向に配置 */
+            align-items: center;  /* 横方向の中央寄せ */
+            width: 100%;  /* 幅を100%に */
+            max-width: 600px;  /* 最大幅を600pxに */
+        }
+
+        /* スコアとレベル表示のスタイル設定 */
+        #score, #level {
+            text-align: center;  /* テキストを中央揃え */
+            font-size: 20px;  /* フォントサイズ */
+            margin-bottom: 10px;  /* 下に余白を追加 */
+        }
+
+        /* キャンバスのスタイル設定 */
+        canvas {
+            border: 4px solid #555;  /* 枠線を追加 */
+            max-width: 100%;  /* 最大幅を100%に */
+        }
+
+        /* コントロールコンテナのスタイル設定 */
+        #control-container {
+            display: flex;  /* フレックスボックスを使用 */
+            flex-direction: column;  /* 縦方向に配置 */
+            align-items: center;  /* 横方向の中央寄せ */
+            margin-top: 20px;  /* 上に余白を追加 */
+        }
+
+        /* スタートボタンのスタイル設定 */
+        #start-btn {
+            width: 200px;  /* 幅を200pxに */
+            height: 60px;  /* 高さを60pxに */
+            font-size: 24px;  /* フォントサイズ */
+            margin-bottom: 20px;  /* 下に余白を追加 */
+        }
+
+        /* ボタンコンテナのスタイル設定 */
+        .button-container {
+            display: grid;  /* グリッドレイアウトを使用 */
+            grid-template-columns: repeat(3, 1fr);  /* 3列に配置 */
+            grid-gap: 5px;  /* ボタン間の間隔 */
+            width: 200px;  /* 幅を200pxに */
+        }
+
+        /* ボタンのスタイル設定 */
+        .button {
+            width: 60px;  /* 幅を60pxに */
+            height: 60px;  /* 高さを60pxに */
+            font-size: 24px;  /* フォントサイズ */
+            text-align: center;  /* テキストを中央揃え */
+            line-height: 60px;  /* 縦方向の中央揃え */
+            border: 1px solid #333;  /* 枠線を追加 */
+            background-color: #ddd;  /* 背景色を設定 */
+            cursor: pointer;  /* カーソルをポインタに */
+        }
+
+        /* ボタンの配置設定 */
+        #rotate-btn { grid-column: 2; grid-row: 1; }  /* 回転ボタンを配置 */
+        #left-btn { grid-column: 1; grid-row: 2; }  /* 左ボタンを配置 */
+        #down-btn { grid-column: 2; grid-row: 2; }  /* 下ボタンを配置 */
+        #right-btn { grid-column: 3; grid-row: 2; }  /* 右ボタンを配置 */
+        #hold-btn { grid-column: 1; grid-row: 3; }  /* ホールドボタンを配置 */
+        #drop-btn { grid-column: 3; grid-row: 3; }  /* ドロップボタンを配置 */
+
+        /* 画面幅が600px以上の場合のスタイル設定 */
+        @media (min-width: 600px) {
+            #game-container {
+                flex-direction: row;  /* 横方向に配置 */
+            }
+
+            #control-container {
+                margin-left: 20px;  /* 左に余白を追加 */
+                margin-top: 0;  /* 上の余白をなしに */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ゲーム全体のコンテナ -->
+    <div id="game-container">
+        <!-- キャンバス部分のコンテナ -->
+        <div id="canvas-container">
+            <!-- スコア表示 -->
+            <div id="score">スコア: 0</div>
+            <!-- レベル表示 -->
+            <div id="level">レベル: 1</div>
+            <!-- メインキャンバス -->
+            <canvas id="main-canvas"></canvas>
+            <!-- 次のブロックとホールドブロックのキャンバス -->
+            <div style="display: flex; justify-content: center; width: 100%;">
+                <canvas id="next-canvas"></canvas>
+                <canvas id="hold-canvas"></canvas>
+            </div>
+        </div>
+        <!-- コントロール部分のコンテナ -->
+        <div id="control-container">
+            <!-- スタートボタン -->
+            <button id="start-btn">スタート</button>
+            <!-- 操作ボタン -->
+            <div class="button-container">
+                <div class="button" id="rotate-btn">⟳</div>
+                <div class="button" id="left-btn">←</div>
+                <div class="button" id="down-btn">↓</div>
+                <div class="button" id="right-btn">→</div>
+                <div class="button" id="hold-btn">H</div>
+                <div class="button" id="drop-btn">⇓</div>
+            </div>
+        </div>
+    </div>
+    <!-- ゲームのロジックを記述したスクリプトファイル -->
+    <script src="tetris.js"></script>
+</body>
+</html>
